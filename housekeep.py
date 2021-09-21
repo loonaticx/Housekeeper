@@ -80,6 +80,8 @@ class Housekeep():
                     elif ft == "PNG":
                             if opt:
                                 po2(im).save(file, icc_profile=None, compress_level=compression, format='PNG', optimize=True)
+                            else:
+                                po2(im).save(file, icc_profile=None, compress_level=compression, format='PNG')
                     else:
                         po2(im).save(file)
                 except IOError:
