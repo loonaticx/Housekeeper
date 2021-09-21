@@ -25,8 +25,6 @@ if recursive: # Recursion time!
 		for root, _, files in os.walk('phase_%s' % phase):
 			for file in files:
 				if not file.endswith(inputFile): # Input file
-					if verbose:
-						print("Skipping %s" % file)
 					continue
 				if verbose:
 					print("Adding %s" %file)
