@@ -57,33 +57,34 @@ def checkICCProfile(im):
     if icc is not None:
         print("Info: {} has icc data, will be removed".format(name))
 
+# todo: migrate out of sys.argv land
+class Housekeep():
+    def __init__(self):
+        """
+        Driver code
+        Compression ranges from 0 to 9, 0 = no compression and 9 is max,
+        PIL's default is 6
+        """
+        compression = 9
+        opt = True
+        try:
+            if len(sys.argv) > 1:
+                for arg in sys.argv[1:]:
+                    try:
+                        im = Image.open(arg)
+                        ft = im.format.upper()
+                        checkICCProfile(im)
+                        checkColorMode(im)
+                        if ft == "JPEG" or ft == "JPG":
+                            po2(im).save(arg, quality=100, subsampling=0)
+                        elif ft == "PNG":
+                                if opt:
+                                    po2(im).save(arg, icc_profile=None, compress_level=compression, format='PNG', optimize=True)
+                        else:
+                            po2(im).save(arg)
+                    except IOError:
+                        print("IO ERROR: Is file an image? -> ", arg)
+        except MemoryError:
+            print("Error: out of memory.")
 
-def main():
-    """
-    Driver code
-    Compression ranges from 0 to 9, 0 = no compression and 9 is max,
-    PIL's default is 6
-    """
-    compression = 9
-    opt = True
-    try:
-        if len(sys.argv) > 1:
-            for arg in sys.argv[1:]:
-                try:
-                    im = Image.open(arg)
-                    ft = im.format.upper()
-                    checkICCProfile(im)
-                    checkColorMode(im)
-                    if ft == "JPEG" or ft == "JPG":
-                        po2(im).save(arg, quality=100, subsampling=0)
-                    elif ft == "PNG":
-                            if opt:
-                               po2(im).save(arg, icc_profile=None, compress_level=compression, format='PNG', optimize=True)
-                    else:
-                        po2(im).save(arg)
-                except IOError:
-                    print("IO ERROR: Is file an image? -> ", arg)
-    except MemoryError:
-        print("Error: out of memory.")
-
-main()
+Housekeep()
