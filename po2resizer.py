@@ -2,104 +2,88 @@
 Author: Ryan Walters
 
 This program resizes images to power of 2 for use in game engines.
+
+Original Repository URL: https://github.com/RyanAWalters/PowerOf2ImageResizer
+
+Modified 9/20/21 by Loonatic
+
+This modified version was built for managing and optimizing Toontown resources, including content packs.
 """
 
 from __future__ import print_function
+import io
 import sys
-# import warnings
 from PIL import Image
-from PIL import TgaImagePlugin  # required import for cxfreeze to correctly package
-from pygame import image
+from PIL import ImageCms
 
-sizes = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192]  # po2 sizes
-
+sizes = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # po2 sizes
+# Don't include 2 since panda doesn't like that res
+# Nothing should EVER be considered to be higher than 2048 in res for Toontown.
 
 def get_closest(y):
     """ Return the closest power of 2 in either direction"""
     return min(sizes, key=lambda x: abs(x - y))
 
 
-def po2(im, threshold=0.25):
-    """ 
-    Return a resized image that is a power of 2 
-    (Checking that if image size is reduced it was fairly close to that size anyway based on threshold)
+def po2(im):
     """
+    Return a resized image that is a power of 2, modified to ignore
+    a need of a threshold, also converts wrt each dimension (ex: 1024x512)
+    """
+    name = im.filename
     width, height = im.size
-    largest_dim = max(width, height)
-    new_dim = max(get_closest(width), get_closest(height))  # new dimension will be largest of x or y po2
+    new_dimX = get_closest(width)
+    new_dimY = get_closest(height)
+    if not width == new_dimX:
+        print("Info: {} width not po2: {}, resizing to {}".format(name, width, new_dimX))
+    if not height == new_dimY:
+        print("Info: {} height not po2: {}, resizing to {}".format(name, height, new_dimY))
+    return im.resize((new_dimX, new_dimY))
 
-    if new_dim < largest_dim:  # if it's smaller, make sure its within threshold
-        if (largest_dim - new_dim) > int(new_dim * threshold):
-            new_dim = sizes[sizes.index(new_dim) + 1]
-            return im.resize((new_dim, new_dim), resample=Image.BICUBIC)
-        else:
-            return im.resize((new_dim, new_dim), resample=Image.LANCZOS)
-    else:
-        return im.resize((new_dim, new_dim), resample=Image.BICUBIC)
+# https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
 
+def checkColorMode(im):
+    cmode = im.mode
+    name = im.filename
+    if not cmode == 'RGB':
+        print("Info: Converting {} from {} to RGB color mode".format(name, cmode))
+        im = im.convert('RGB')
 
-def read_config():
-    """ Returns the threshold and compression level from the config file """
-    threshold = 0.25
-    compression = 0
-
-    # No need to continue parsing if vars found already
-    found_vars = [False, False]
-    found_var_count = 0
-
-    try:
-        with open('config.txt', 'r') as config:
-            for line in config:
-
-                if found_var_count == 2:
-                    break
-
-                if not found_vars[0]:
-                    if "THRESHOLD=" in line.upper():
-                        try:
-                            threshold = float(line.upper().replace('THRESHOLD=', ''))
-                            found_vars[0] = True
-                            continue
-                        except ValueError:
-                            print('Invalid threshold in config.txt')
-
-                if not found_vars[0]:
-                    if "COMPRESSION=" in line.upper():
-                        try:
-                            compression = int(line.upper().replace('COMPRESSION=', ''))
-                            found_vars[1] = True
-                            continue
-                        except ValueError:
-                            print('Invalid compression level in config.txt')
-    except IOError:
-        print("Cannot open config.txt")
-
-    return threshold, compression
-
-
-def save_targa(im, arg):
-    """ Convert PIL image to pygame image and save. PIL cannot save tga and no other library works with PIL """
-    image.save(image.fromstring(im.tobytes(), im.size, im.mode), arg.split('.', 1)[0] + '.tga')
+def checkICCProfile(im):
+    # https://stackoverflow.com/questions/31865743/pil-pillow-decode-icc-profile-information
+    # https://pillow.readthedocs.io/en/stable/reference/ImageCms.html#PIL.ImageCms.CmsProfile
+    name = im.filename
+    icc = im.info.get('icc_profile')
+    if icc is not None:
+        print("Info: {} has icc data, will be removed".format(name))
 
 
 def main():
-    threshold, compression = read_config()
+    """
+    Driver code
+    Compression ranges from 0 to 9, 0 = no compression and 9 is max,
+    PIL's default is 6
+    """
+    compression = 9
+    opt = True
     try:
-        # warnings.simplefilter('ignore', Image.DecompressionBombWarning)
         if len(sys.argv) > 1:
             for arg in sys.argv[1:]:
                 try:
                     im = Image.open(arg)
-                    if im.format.upper() == "TGA":
-                        save_targa(po2(im, threshold), arg)
+                    ft = im.format.upper()
+                    checkICCProfile(im)
+                    checkColorMode(im)
+                    if ft == "JPEG" or ft == "JPG":
+                        po2(im).save(arg, quality=100, subsampling=0)
+                    elif ft == "PNG":
+                            if opt:
+                               po2(im).save(arg, icc_profile=None, compress_level=compression, format='PNG', optimize=True)
                     else:
-                        po2(im, threshold).save(arg, im.format.lower(), compress_level=compression)
+                        po2(im).save(arg)
                 except IOError:
                     print("IO ERROR: Is file an image? -> ", arg)
     except MemoryError:
-        print("OOM")
+        print("Error: out of memory.")
 
 main()
-
-
-
