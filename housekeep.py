@@ -36,9 +36,9 @@ def po2(im):
     new_dimX = get_closest(width)
     new_dimY = get_closest(height)
     if not width == new_dimX:
-        print("Info: {} width not po2: {}, resizing to {}".format(name, width, new_dimX))
+        print("Warning: {} width not po2: {}, resizing to {}".format(name, width, new_dimX))
     if not height == new_dimY:
-        print("Info: {} height not po2: {}, resizing to {}".format(name, height, new_dimY))
+        print("Warning: {} height not po2: {}, resizing to {}".format(name, height, new_dimY))
     return im.resize((new_dimX, new_dimY))
 
 # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#concept-modes
@@ -56,7 +56,7 @@ def checkICCProfile(im):
     name = im.filename
     icc = im.info.get('icc_profile')
     if icc is not None:
-        print("Info: {} has icc data, will be removed".format(name))
+        print("Warning: {} has icc data, will be removed".format(name))
 
 # todo: migrate out of sys.argv land
 class Housekeep():
