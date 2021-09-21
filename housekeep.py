@@ -46,9 +46,9 @@ def po2(im):
 def checkColorMode(im):
     cmode = im.mode
     name = im.filename
-    if not cmode == 'RGB':
-        print("Info: Converting {} from {} to RGB color mode".format(name, cmode))
-        im = im.convert('RGB')
+    if not cmode == 'RGB' and not cmode == 'RGBA':
+        print("Info: File {} from {} is not RGB/RGBA color mode".format(name, cmode))
+        #im = im.convert('RGB')
 
 def checkICCProfile(im):
     # https://stackoverflow.com/questions/31865743/pil-pillow-decode-icc-profile-information
