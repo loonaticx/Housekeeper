@@ -16,6 +16,7 @@ import sys
 from PIL import Image
 from PIL import ImageCms
 
+
 sizes = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]  # po2 sizes
 # Don't include 2 since panda doesn't like that res
 # Nothing should EVER be considered to be higher than 2048 in res for Toontown.
@@ -59,7 +60,7 @@ def checkICCProfile(im):
 
 # todo: migrate out of sys.argv land
 class Housekeep():
-    def __init__(self):
+    def __init__(self, files):
         """
         Driver code
         Compression ranges from 0 to 9, 0 = no compression and 9 is max,
@@ -68,23 +69,21 @@ class Housekeep():
         compression = 9
         opt = True
         try:
-            if len(sys.argv) > 1:
-                for arg in sys.argv[1:]:
-                    try:
-                        im = Image.open(arg)
-                        ft = im.format.upper()
-                        checkICCProfile(im)
-                        checkColorMode(im)
-                        if ft == "JPEG" or ft == "JPG":
-                            po2(im).save(arg, quality=100, subsampling=0)
-                        elif ft == "PNG":
-                                if opt:
-                                    po2(im).save(arg, icc_profile=None, compress_level=compression, format='PNG', optimize=True)
-                        else:
-                            po2(im).save(arg)
-                    except IOError:
-                        print("IO ERROR: Is file an image? -> ", arg)
+            for file in files:
+                try:
+                    im = Image.open(file)
+                    ft = im.format.upper()
+                    checkICCProfile(im)
+                    checkColorMode(im)
+                    if ft == "JPEG" or ft == "JPG":
+                        po2(im).save(file, quality=100, subsampling=0)
+                    elif ft == "PNG":
+                            if opt:
+                                po2(im).save(file, icc_profile=None, compress_level=compression, format='PNG', optimize=True)
+                    else:
+                        po2(im).save(file)
+                except IOError:
+                    print("IO ERROR: Is file an image? -> ", file)
         except MemoryError:
             print("Error: out of memory.")
 
-Housekeep()
