@@ -13,8 +13,7 @@ if args.all_phases:
 recursive = args.recursive
 selectedPhases = args.selected_phases
 
-if (not recursive) and selectedPhases:
-	recursive = True # we're gonna do recursion on the phases anyway
+recursive = True
 inputFile = ".png" # for now
 verbose = True
 
