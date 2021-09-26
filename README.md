@@ -4,6 +4,19 @@ Housekeeper - <br><i>Optimize Toontown Textures</i>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+# Usage Instructions
+
+* Requires Python 3.8 to run, and also requires the following dependencies:
+    - argparse
+    - PIL / pillow
+You can install dependencies by doing ``pip install argparse`` or ``python -m pip install argparse``. 
+   
+* Make sure you have a back-up/failover for your phase files just in case you want to revert back something.
+
+* Copy housekeep.py and runHousekeeper.py to the folder that has your phase folders
+
+* Run ``python runHousekeeper.py``
+
 
 **About**
 
