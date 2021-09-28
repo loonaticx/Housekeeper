@@ -65,11 +65,15 @@ def checkICCProfile(im):
     return False
 
 class Housekeep():
-    def __init__(self, files, opt):
+    def __init__(self, files, opt, dryrun=False):
         """
         Driver code
         Compression ranges from 0 to 9, 0 = no compression and 9 is max,
         PIL's default is 6
+
+        files = List of files (collected from runHousekeeper)
+        opt = Optimize, if enabled will take a long time to finish
+        dryrun = If true will only print files that will be affected
         """
         compression = 9
         try:
@@ -82,14 +86,16 @@ class Housekeep():
                     if ft == "JPEG" or ft == "JPG": # JPGs dont have ICC profiles
                         if not checkpo2(im):
                             continue
-                        po2(im).save(file, quality=100, subsampling=0)
+                        if not dryrun:
+                            po2(im).save(file, quality=100, subsampling=0)
                     elif ft == "PNG":
                             if opt: # Gonna run through them all anyway
                                 po2(im).save(file, icc_profile=None, compress_level=compression, format='PNG', optimize=True)
                             else:
                                 if not checkICCProfile(im) or checkpo2(im):
                                     continue
-                                po2(im).save(file, icc_profile=None, compress_level=compression, format='PNG')
+                                if not dryrun:
+                                    po2(im).save(file, icc_profile=None, compress_level=compression, format='PNG')
                     else:
                         po2(im).save(file)
                 except IOError:
