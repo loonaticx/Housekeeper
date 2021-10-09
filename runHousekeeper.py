@@ -28,8 +28,10 @@ parser.add_argument('--dryrun', '-dr', action='store_true',
 # parser.add_argument('--all-phases', '--all_phases', action='store_true', help='Convert all phase files folders. (3 to 14)')
 args = parser.parse_args()
 
-verbose = True  # set to False if you dont wanna see the Adding messages
-all_phases = True  # just by default
+verbose = True # set to False if you dont wanna see the Adding messages
+all_phases = False
+if args.selected_phases is None:
+    all_phases = True
 if all_phases:
     args.selected_phases = ['3', '3.5', '4', '5', '5.5', '6', '7', '8', '9', '10', '11', '12', '13', '14']
 selectedPhases = args.selected_phases
