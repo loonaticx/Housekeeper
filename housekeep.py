@@ -92,7 +92,7 @@ class Housekeep():
                             if opt: # Gonna run through them all anyway
                                 po2(im).save(file, icc_profile=None, compress_level=compression, format='PNG', optimize=True)
                             else:
-                                if not checkICCProfile(im) or not checkpo2(im):
+                                if not checkICCProfile(im) and not checkpo2(im):
                                     continue
                                 if not dryrun:
                                     po2(im).save(file, icc_profile=None, compress_level=compression, format='PNG')
